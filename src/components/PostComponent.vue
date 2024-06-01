@@ -7,22 +7,20 @@ const props = defineProps({
 })
 
 interface item {
-  by: string
-  descendants: number
+  author: string
+  children: item[]
   id: number
-  required: true
-  kids: number[]
-  score: number
-  time: number
   title: string
-  type: string
   url: string
+  text: string
+  parent_id: number
+  created_at: string
+  points: number
 }
 
 const errorMessage = ref<string>('')
 const post = ref<item>()
-
-fetch('https://hacker-news.firebaseio.com/v0/item/' + props.postId + '.json')
+fetch('http://hn.algolia.com/api/v1/items/' + props.postId)
   .then(async (response) => {
     const isJson = response.headers.get('content-type')?.includes('application/json')
     const data = isJson && (await response.json())
@@ -33,7 +31,6 @@ fetch('https://hacker-news.firebaseio.com/v0/item/' + props.postId + '.json')
       const error = (data && data.message) || response.status
       return Promise.reject(error)
     }
-
     post.value = data
   })
   .catch((error) => {
@@ -41,7 +38,6 @@ fetch('https://hacker-news.firebaseio.com/v0/item/' + props.postId + '.json')
     console.error('There was an error!', error)
   })
 console.log(post)
-
 console.log(props.postId)
 </script>
 <template>
@@ -57,13 +53,13 @@ console.log(props.postId)
           </RouterLink>
         </div>
         <div class="flex flex-row">
-          <IconUpVote class="h-[10px] mt-[5px] mr-2"></IconUpVote> {{ post.score }} points
+          <IconUpVote class="h-[10px] mt-[5px] mr-2"></IconUpVote> {{ post.points }} points
         </div>
       </div>
-      <div class="flex shrink-0 w-1/5 flex-col justify-between">
+      <div class="text-right flex shrink-0 w-1/5 flex-col justify-between">
         <div>12 hours ago</div>
         <div>
-          <RouterLink to="/user/123456">{{ post.by }}</RouterLink>
+          <RouterLink :to="'/user/' + post.author">{{ post.author }}</RouterLink>
         </div>
       </div>
     </div>
