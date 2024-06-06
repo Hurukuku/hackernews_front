@@ -1,14 +1,33 @@
 <script setup lang="ts">
 import PostComponent from '../components/PostComponent.vue'
+import { ref } from 'vue'
+
+const newPosts = ref<number[]>([])
+const errorMessage = ref(null)
+
+fetch('https://hacker-news.firebaseio.com/v0/newstories.json?count=20')
+  .then(async (response) => {
+    const isJson = response.headers.get('content-type')?.includes('application/json')
+    const data = isJson && (await response.json())
+
+    // check for error response
+    if (!response.ok) {
+      // get error message from body or default to response status
+      const error = (data && data.message) || response.status
+      return Promise.reject(error)
+    }
+
+    newPosts.value = data
+  })
+  .catch((error) => {
+    errorMessage.value = error
+    console.error('There was an error!', error)
+  })
 </script>
 
 <template>
-  <main
-    class="flex justify-center space-y-2 flex-col h-1 justify-items-center items-center w-full p-4 overflow-y-scroll"
-  >
-    <PostComponent
-      v-for="item in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]"
-      :key="item"
-    ></PostComponent>
+  <main class="mt-16 flex flex-col h-full items-center space-y-2">
+    <PostComponent v-for="item in newPosts.slice(0, 20)" :key="item" :postId="item"></PostComponent>
   </main>
 </template>
+-
